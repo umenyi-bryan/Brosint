@@ -1,0 +1,66 @@
+{
+  "summary": {
+    "sources": 4
+  },
+  "hypotheses": [
+    {
+      "identity": "Hunter",
+      "confidence": 0,
+      "signals": [
+        {
+          "source": "Hunter",
+          "type": "enrichment",
+          "data": {
+            "email": "demo@example.com",
+            "score": 0.91
+          }
+        }
+      ]
+    },
+    {
+      "identity": "HIBP",
+      "confidence": 20,
+      "signals": [
+        {
+          "source": "HIBP",
+          "type": "breach",
+          "data": {
+            "breach": "ExampleLeak2024"
+          }
+        }
+      ]
+    },
+    {
+      "identity": "PhoneInfoga",
+      "confidence": 0,
+      "signals": [
+        {
+          "source": "PhoneInfoga",
+          "type": "scan",
+          "data": {
+            "number": "+2348012345678",
+            "region": "NG",
+            "carrier": "MTN"
+          }
+        }
+      ]
+    },
+    {
+      "identity": "Sherlock",
+      "confidence": 20,
+      "signals": [
+        {
+          "source": "Sherlock",
+          "type": "profile_found",
+          "platform": "github",
+          "url": "https://github.com/janedoe"
+        },
+        {
+          "source": "Sherlock",
+          "type": "not_found",
+          "platform": "twitter"
+        }
+      ]
+    }
+  ]
+}
