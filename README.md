@@ -1,3 +1,16 @@
+<p align="center">
+  <img src="assets/logo.svg" width="420" alt="BROsint Logo">
+</p>
+
+# 🧠 BROsint
+**Advanced OSINT framework for phone, email, and social footprint reconnaissance — built for ethical cybersecurity research.**  
+**Author:** Chinedu • **Version:** 1.0.0
+
+<p align="center">
+  <a href="https://github.com/umenyi-bryan/Brosint"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <img src="https://img.shields.io/badge/python-3.10%2B-blue.svg">
+  <img src="https://img.shields.io/badge/status-active-success.svg">
+</p>
 <pre>
 ```
 ██████╗ ██████╗  ██████╗ ███████╗██╗███╗   ██╗████████╗
