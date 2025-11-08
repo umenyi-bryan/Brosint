@@ -1,24 +1,20 @@
-"""
-Whois lookup: wraps python-whois with caching.
-"""
+# core/whois_lookup.py
 import whois
-from utils.cache import load, save
+import tldextract
 
-def offline_whois(domain):
-    return {"domain": domain, "owner": "demo_owner", "created": "2020-01-01"}
-
-def online_whois(domain):
-    key = f"whois:{domain}"
-    c = load(key)
-    if c: return c
+def lookup(domain):
+    out = {"domain": domain}
     try:
         w = whois.whois(domain)
-        out = dict(w)
-    except Exception as e:
-        out = {"error": str(e)}
-    save(key,out,ttl=86400); return out
-
-def lookup(domain, online=False):
-    if online:
-        return online_whois(domain)
-    return offline_whois(domain)
+        # convert possibly non-serializable fields to strings
+        out.update({
+            "registrar": w.registrar,
+            "creation_date": str(w.creation_date) if w.creation_date else None,
+            "expiration_date": str(w.expiration_date) if w.expiration_date else None,
+            "name": w.name if hasattr(w, "name") else None
+        })
+    except Exception:
+        ed = tldextract.extract(domain)
+        out["registered"] = False
+        out["domain_parsed"] = f"{ed.domain}.{ed.suffix}" if ed.suffix else ed.domain
+    return out

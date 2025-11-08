@@ -1,40 +1,24 @@
-"""
-Free-mode social lookup: existence checks for common profile URLs.
-Performs HEAD requests (lightweight).
-"""
-import requests
+# core/social_lookup.py
+from .searcher import search
 
-PLATFORMS = {
-    "github":"https://github.com/{u}",
-    "twitter":"https://twitter.com/{u}",
-    "instagram":"https://www.instagram.com/{u}/",
-    "linkedin":"https://www.linkedin.com/in/{u}/",
-    "reddit":"https://www.reddit.com/user/{u}"
-}
+COMMON_SITES = ["github.com", "twitter.com", "linkedin.com", "instagram.com", "facebook.com"]
 
-def offline_social_lookup(username):
-    if not username: return {"matched_profiles":[]}
-    if username.lower() in ("janedoe","chinedu"):
-        return {"matched_profiles":[{"platform":"github","url":f"https://github.com/{username}"}]}
-    return {"matched_profiles":[]}
-
-def online_social_lookup(username):
+def lookup(username, limit=10):
+    results = {"matched_profiles": []}
     if not username:
-        return {"matched_profiles":[]}
-    found = []
-    headers = {"User-Agent":"BROsint-Free/1.0"}
-    for name, tpl in PLATFORMS.items():
-        url = tpl.format(u=username)
-        try:
-            r = requests.head(url, headers=headers, timeout=6, allow_redirects=True)
-            if r.status_code == 200:
-                found.append({"platform": name, "url": url})
-        except Exception:
-            # ignore network errors and timeouts
-            pass
-    return {"matched_profiles": found}
+        return results
+    q = f'"{username}"'
+    hits = search(q, limit=limit)
+    for h in hits:
+        url = (h.get("link") or "").lower()
+        title = h.get("title") or ""
+        if any(site in url for site in COMMON_SITES) or username.lower() in title.lower() or username.lower() in (h.get("snippet") or "").lower():
+            # Try to assign platform based on URL heuristics
+            platform = None
+            for s in COMMON_SITES:
+                if s in url:
+                    platform = s.split(".")[0]
+                    break
+            results["matched_profiles"].append({"platform": platform, "url": h.get("link"), "title": title})
+    return results
 
-def lookup(username, online=False):
-    if online:
-        return online_social_lookup(username)
-    return offline_social_lookup(username)

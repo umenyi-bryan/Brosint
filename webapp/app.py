@@ -1,113 +1,92 @@
-import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# webapp/app.py
+import os, json
+from flask import Flask, render_template, request, jsonify, send_from_directory
+from dotenv import load_dotenv
 
-from flask import Flask, render_template, request, jsonify, send_file
-from colorama import Fore, Style, init
-import json, subprocess, time, io, zipfile
+load_dotenv()
 
-# safe imports from core modules (these should be free-mode implementations)
-from core import email_lookup, social_lookup, whois_lookup, ip_lookup, meta_extract, hypothesis_engine
+from core.searcher import search
+from core.email_lookup import lookup as email_lookup
+from core.phone_lookup import lookup as phone_lookup
+from core.social_lookup import lookup as social_lookup
+from core.whois_lookup import lookup as whois_lookup
+from core.filemeta import extract as filemeta_extract
+from core.hypothesis_engine import analyze as hypothesis_analyze
+from utils.formatter import format_for_web
 
-init(autoreset=True)
-ascii = f"""{Fore.CYAN}
-██████╗ ██████╗  ██████╗ ███████╗██╗███╗   ██╗████████╗
-██╔══██╗██╔══██╗██╔═══██╗██╔════╝██║████╗  ██║╚══██╔══╝
-██████╔╝██████╔╝██║   ██║███████╗██║██╔██╗ ██║   ██║
-██╔═══╝ ██╔══██╗██║   ██║╚════██║██║██║╚██╗██║   ██║
-██║     ██║  ██║╚██████╔╝███████║██║██║ ╚████║   ██║
-╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝
-{Style.RESET_ALL}
-BROsint - Bright Responsible OSINT
-Author: Chinedu | Version: 1.0.0
-"""
-print(ascii)
-print(Fore.GREEN + "🚀 BROsint Dashboard running at http://127.0.0.1:5000\n")
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+REPORT_FILE = os.path.join(os.path.dirname(APP_DIR), "report.json")
 
-app = Flask(__name__, template_folder="templates", static_folder="static")
-
-# default report path (app will also keep last_report.json)
-REPORT_OUT = os.path.join(os.path.dirname(__file__), "..", "report.json")
-LAST_REPORT = os.path.join(app.static_folder, "last_report.json")
-
-def build_structured_output(query, results):
-    obj = {"query": query, "results": results}
-    obj["hypothesis"] = hypothesis_engine.generate_hypothesis(obj)
-    obj["generated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    return obj
+app = Flask(__name__, static_folder="static", template_folder="templates")
 
 @app.route("/")
-def home():
-    # index will fetch last_report.json via JS
-    return render_template("dashboard.html")
+def index():
+    report = {}
+    if os.path.exists(REPORT_FILE):
+        try:
+            with open(REPORT_FILE) as f:
+                report = json.load(f)
+        except Exception:
+            report = {}
+    return render_template("index.html", report=report)
 
-@app.route("/api/lookup", methods=["POST"])
-def api_lookup():
-    data = request.get_json() or request.form
-    qtype = data.get("type")
-    q = data.get("query")
-    online = data.get("online", True)
-    if not q or not qtype:
-        return jsonify({"error":"missing query or type"}), 400
+@app.route("/api/search", methods=["POST"])
+def api_search():
+    body = request.get_json() or {}
+    q = body.get("query")
+    if not q:
+        return jsonify({"error":"missing query"}), 400
+    hits = search(q, limit=15)
+    return jsonify({"query": q, "results": hits})
+
+@app.route("/api/upload", methods=["POST"])
+def api_upload():
+    # Accept file uploads (images). Save to webapp/uploads and return server path.
+    if "file" not in request.files:
+        return jsonify({"error":"no file"}), 400
+    f = request.files["file"]
+    updir = os.path.join(APP_DIR, "uploads")
+    os.makedirs(updir, exist_ok=True)
+    savepath = os.path.join(updir, f.filename)
+    f.save(savepath)
+    return jsonify({"path": savepath, "filename": f.filename})
+
+@app.route("/api/scan", methods=["POST"])
+def api_scan():
+    body = request.get_json() or {}
+    email = body.get("email")
+    phone = body.get("phone")
+    username = body.get("username")
+    domain = body.get("domain")
+    file_path = body.get("file")  # path previously returned by /api/upload
 
     results = {}
+    if email:
+        results["email"] = email_lookup(email)
+        # whois domain automatically
+        if "@" in email:
+            dom = email.split("@",1)[1]
+            results["whois"] = whois_lookup(dom)
+    if phone:
+        results["phone"] = phone_lookup(phone)
+    if username:
+        results["social"] = social_lookup(username)
+    if domain:
+        results["whois"] = whois_lookup(domain)
+    if file_path:
+        results["filemeta"] = filemeta_extract(file_path)
+
+    results["hypothesis"] = hypothesis_analyze(results)
+
+    structured = format_for_web(results)
     try:
-        if qtype == "email":
-            results["email_intel"] = email_lookup.lookup(q, online=online)
-            # domain whois
-            if "@" in q:
-                domain = q.split("@",1)[1]
-                results["whois"] = whois_lookup.lookup(domain, online=online)
-        elif qtype == "username":
-            results["social_intel"] = social_lookup.lookup(q, online=online)
-        elif qtype == "domain":
-            results["whois"] = whois_lookup.lookup(q, online=online)
-        elif qtype == "ip":
-            results["ip_intel"] = ip_lookup.lookup(q, online=online)
-        elif qtype == "file":
-            results["meta"] = meta_extract.extract(q, online=online)
-        else:
-            return jsonify({"error":"invalid lookup type"}), 400
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-    structured = build_structured_output({"type": qtype, "query": q}, results)
-
-    # write report files
-    with open(REPORT_OUT, "w") as f:
-        json.dump(structured, f, indent=2)
-    with open(LAST_REPORT, "w") as f:
-        json.dump(structured, f, indent=2)
+        with open(REPORT_FILE, "w") as f:
+            json.dump(structured, f, indent=2)
+    except Exception:
+        pass
 
     return jsonify(structured)
 
-@app.route("/api/report")
-def api_report():
-    if os.path.exists(LAST_REPORT):
-        with open(LAST_REPORT, "r") as f:
-            return jsonify(json.load(f))
-    if os.path.exists(REPORT_OUT):
-        with open(REPORT_OUT, "r") as f:
-            return jsonify(json.load(f))
-    return jsonify({"error":"no report"}), 404
-
-@app.route("/api/export", methods=["GET"])
-def api_export():
-    # Create an in-memory ZIP containing the latest report and static assets (for release)
-    if not os.path.exists(REPORT_OUT):
-        return jsonify({"error":"no report to export"}), 404
-    mem = io.BytesIO()
-    with zipfile.ZipFile(mem, mode="w", compression=zipfile.ZIP_DEFLATED) as z:
-        z.write(REPORT_OUT, arcname=os.path.basename(REPORT_OUT))
-        # include web assets for quick sharing
-        static_dir = os.path.join(os.path.dirname(__file__), "static")
-        for root, _, files in os.walk(static_dir):
-            for fn in files:
-                path = os.path.join(root, fn)
-                arc = os.path.relpath(path, os.path.dirname(__file__))
-                z.write(path, arcname=arc)
-    mem.seek(0)
-    return send_file(mem, download_name="BROsint_report.zip", as_attachment=True)
-
-if __name__ == "__main__":
-    # start
-    app.run(host="127.0.0.1", port=5000, debug=False, use_reloader=False)
+def start_web():
+    print("\n🚀 BROsint — Neon dashboard at http://127.0.0.1:5000\n")
+    app.run(host="127.0.0.1", port=5000, debug=True)

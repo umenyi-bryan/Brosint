@@ -1,14 +1,9 @@
 flask
-colorama
 requests
+python-dotenv
 dnspython
 python-whois
+Pillow
 beautifulsoup4
-python-dotenv
-pillow
-exifread
-lxml
-tldextract
 phonenumbers
-validators
-aiohttp
+tldextract

@@ -1,52 +1,34 @@
-"""
-Free-mode email lookup (no API keys).
-- MX record check via dnspython
-- Gravatar check (public)
-- Basic domain resolution
-"""
-import hashlib, socket, requests
+# core/email_lookup.py
 import dns.resolver
+import hashlib
+import requests
 
-def _mx_lookup(domain):
+def mx_lookup(domain):
     try:
-        answers = dns.resolver.resolve(domain, 'MX', lifetime=6)
-        mx = [str(r.exchange).rstrip('.') for r in answers]
-        return {"mx": mx}
-    except Exception as e:
-        return {"mx_error": str(e)}
+        answers = dns.resolver.resolve(domain, 'MX', lifetime=8)
+        return [str(r.exchange).rstrip('.') for r in answers]
+    except Exception:
+        return []
 
-def _domain_resolves(domain):
+def has_gravatar(email):
     try:
-        socket.gethostbyname(domain)
-        return True
+        h = hashlib.md5(email.strip().lower().encode()).hexdigest()
+        url = f"https://www.gravatar.com/avatar/{h}?d=404"
+        r = requests.get(url, timeout=6)
+        return r.status_code == 200
     except Exception:
         return False
 
-def _gravatar_exists(email):
+def lookup(email):
+    out = {"email": email}
     try:
-        e = email.strip().lower().encode('utf-8')
-        h = hashlib.md5(e).hexdigest()
-        url = f"https://www.gravatar.com/avatar/{h}?d=404"
-        r = requests.get(url, timeout=6)
-        return r.status_code == 200, url
+        if "@" in email:
+            domain = email.split("@",1)[1]
+        else:
+            domain = ""
     except Exception:
-        return False, None
-
-def offline_email_lookup(email):
-    domain = email.split('@')[-1] if '@' in email else None
-    return {"email": email, "domain": domain, "mx": None, "domain_resolves": False, "gravatar": False}
-
-def online_email_lookup(email):
-    domain = email.split('@')[-1] if '@' in email else None
-    result = {"email": email, "domain": domain}
-    if domain:
-        result.update(_mx_lookup(domain))
-        result["domain_resolves"] = _domain_resolves(domain)
-    exists, grav_url = _gravatar_exists(email)
-    result["gravatar"] = {"exists": exists, "url": grav_url}
-    return result
-
-def lookup(email, online=False):
-    if online:
-        return online_email_lookup(email)
-    return offline_email_lookup(email)
+        domain = ""
+    out["domain"] = domain
+    out["mx"] = mx_lookup(domain) if domain else []
+    out["gravatar"] = has_gravatar(email)
+    return out
