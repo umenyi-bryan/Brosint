@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BROsint Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>🧠 BROsint Intelligence Dashboard</h1>
+    <p class="subtitle">Bright Responsible OSINT Toolkit — Powered by Free APIs</p>
+
+    <form id="lookupForm">
+      <select name="lookup_type" required>
+        <option value="email">Email Lookup</option>
+        <option value="social">Social Profile Search</option>
+        <option value="whois">Domain WHOIS</option>
+        <option value="meta">Metadata Extractor</option>
+        <option value="hypothesis">AI Hypothesis Engine</option>
+      </select>
+
+      <input type="text" name="query" placeholder="Enter query (email, username, or domain)" required>
+      <button type="submit">Run Lookup</button>
+    </form>
+
+    <div id="results"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('lookupForm');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const res = await fetch('/lookup', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      document.getElementById('results').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    });
+  </script>
+</body>
+</html>

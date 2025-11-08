@@ -1,0 +1,7 @@
+requests
+python-dotenv
+python-whois
+ipinfo
+shodan
+emailrep
+psutil

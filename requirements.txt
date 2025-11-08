@@ -1,3 +1,14 @@
 flask
-jinja2
-rich
+colorama
+requests
+dnspython
+python-whois
+beautifulsoup4
+python-dotenv
+pillow
+exifread
+lxml
+tldextract
+phonenumbers
+validators
+aiohttp

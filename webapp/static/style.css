@@ -1,0 +1,52 @@
+body {
+  font-family: "Fira Code", monospace;
+  background-color: #0d1117;
+  color: #e6edf3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  text-align: center;
+  background: #161b22;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px #00ffff44;
+  width: 90%;
+  max-width: 600px;
+}
+
+h1 {
+  color: #00ffff;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: #8b949e;
+  margin-bottom: 20px;
+}
+
+input, select, button {
+  font-family: inherit;
+  padding: 10px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+}
+
+input, select {
+  width: 80%;
+}
+
+button {
+  background: #00ffff;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #00ccff;
+}

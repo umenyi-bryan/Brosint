@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BROsint — Neon OSINT Dashboard</title>
+  <link rel="stylesheet" href="/static/professional.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">BROsint</div>
+      <div class="meta">Bright Responsible OSINT — <strong>Author:</strong> Chinedu</div>
+    </header>
+
+    <main>
+      <section class="controls card">
+        <div class="row">
+          <select id="type">
+            <option value="email">Email</option>
+            <option value="username">Username</option>
+            <option value="domain">Domain</option>
+            <option value="ip">IP</option>
+            <option value="file">File Path</option>
+          </select>
+          <input id="query" placeholder="Enter email, username, domain, IP or local file path" />
+          <label class="switch"><input id="online" type="checkbox" checked><span>Live</span></label>
+          <button id="run">Run Lookup</button>
+          <button id="export">Export ZIP</button>
+        </div>
+      </section>
+
+      <section id="results-area">
+        <div class="grid">
+          <div class="card" id="card-email"><h3>Email</h3><pre id="email-pre">—</pre></div>
+          <div class="card" id="card-social"><h3>Social</h3><pre id="social-pre">—</pre></div>
+          <div class="card" id="card-whois"><h3>WHOIS</h3><pre id="whois-pre">—</pre></div>
+          <div class="card" id="card-ip"><h3>IP</h3><pre id="ip-pre">—</pre></div>
+          <div class="card wide" id="card-hypo"><h3>Hypothesis</h3><div id="hypo-badge" class="badge">—</div><pre id="hypo-pre">—</pre></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">© BROsint — bright responsible osint</footer>
+  </div>
+
+<script>
+async function apiLookup(type, query, online=true){
+  const body = JSON.stringify({type, query, online});
+  const res = await fetch('/api/lookup', {method:'POST', headers:{'Content-Type':'application/json'}, body});
+  return res.json();
+}
+
+document.getElementById('run').onclick = async () => {
+  const type = document.getElementById('type').value;
+  const query = document.getElementById('query').value.trim();
+  const online = document.getElementById('online').checked;
+  if(!query){ alert('Enter a query'); return; }
+  document.getElementById('email-pre').textContent = 'Running…';
+  document.getElementById('social-pre').textContent = 'Running…';
+  document.getElementById('whois-pre').textContent = 'Running…';
+  document.getElementById('ip-pre').textContent = 'Running…';
+  document.getElementById('hypo-pre').textContent = 'Running…';
+  const data = await apiLookup(type, query, online);
+  // fill cards defensively
+  document.getElementById('email-pre').textContent = JSON.stringify(data.results?.email_intel || data.email_intel || {}, null, 2);
+  document.getElementById('social-pre').textContent = JSON.stringify(data.results?.social_intel || data.social_intel || {}, null, 2);
+  document.getElementById('whois-pre').textContent = JSON.stringify(data.results?.whois || {}, null, 2);
+  document.getElementById('ip-pre').textContent = JSON.stringify(data.results?.ip_intel || {}, null, 2);
+  const hypo = data.hypothesis || data.results?.hypothesis || data.hypothesis || {};
+  document.getElementById('hypo-pre').textContent = JSON.stringify(hypo, null, 2);
+  const badge = document.getElementById('hypo-badge');
+  const lvl = (hypo.level || (hypo.confidence>=75?'high':(hypo.confidence>=40?'medium':'low'))) || 'low';
+  badge.textContent = `${hypo.confidence || 0}% (${lvl})`;
+  badge.className = 'badge ' + lvl;
+};
+
+document.getElementById('export').onclick = () => {
+  window.location = '/api/export';
+};
+</script>
+</body>
+</html>
