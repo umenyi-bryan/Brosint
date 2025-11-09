@@ -54,33 +54,40 @@ Professional neon ASCII design for a futuristic visual style
 ---
 
 ### ⚙️ Installation
-
-
-To install and run BROsint on your system:
-
-# Clone the repository
 ```
+# Clone the repository
 git clone https://github.com/umenyi-bryan/BROsint.git
 cd BROsint
-```
 
-# Activate virtual environment
+# Create and activate a virtual environment
+python3 -m venv venv
 source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Start the web dashboard
+# Start the web interface
 python brosint.py --web
+
+Once running, access the dashboard at:
+👉 http://127.0.0.1:5000
+```
 ---
 
 ### 📚 Usage 
-1. Launch the web dashboard — it will run locally at:
-http://127.0.0.1:5000
+⚙️ Example Commands
 
+# Email intelligence
+python brosint.py --email example@mail.com
 
-2. Enter an email, username, phone, or file in the search bar.
+# Username analysis
+python brosint.py --username exampleuser
 
+# Domain lookup
+python brosint.py --domain example.com
+
+# Run with web interface
+python brosint.py --web
 
 3. View live OSINT results including:
 
@@ -127,12 +134,16 @@ Contributions can include bug fixes, new OSINT modules, or UI improvements.
 
 ---
 
-License
+📜 License
 
-BROsint is open-source software provided for ethical and educational use only.
-Any misuse for illegal or unethical purposes is strictly prohibited.
+This project is licensed under the MIT License.
+Use responsibly — this software is intended for educational and ethical use only.
 
-© 2025 Chinedu. All rights reserved.
+> ⚠️ Misuse for illegal surveillance or privacy violations is strictly forbidden.
+
+
+
+© 2025 Chinedu. All Rights Reserved.
 
 
 ---
