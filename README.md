@@ -30,44 +30,110 @@
 ![Python](https://img.shields.io/badge/Built%20with-Python-blue.svg)
 ![Status](https://img.shields.io/badge/Status-Active-success.svg)
 
-> **BROsint** is an advanced Open Source Intelligence (OSINT) framework built for ethical research, intelligence analysis, and digital footprint correlation.  
-> Created by **Chinedu**, this tool integrates multiple data sources to help investigators, students, and researchers visualize and understand how public information connects across the web.
+> **BROsint** is a free, fully interactive OSINT (Open Source Intelligence) tool that empowers ethical investigators, researchers, and security enthusiasts to perform advanced intelligence collection.
 
+It can investigate emails, usernames, phone numbers, domains, and files with live results fetched directly from the internet.
+BROsint’s dynamic neon web dashboard gives you real-time results, AI-generated hypotheses, and supports Google dorking for deeper web discovery.
 ---
 
 ### 🚀 Features
-- Email and phone metadata analysis  
-- Automatic social footprint discovery  
-- Hypothesis generation using contextual clues  
-- Neon terminal interface with animated visuals  
-- JSON and HTML report export  
 
+Email, username, and phone lookup with real-time results
+
+Domain WHOIS and IP geolocation
+
+File metadata extraction (EXIF)
+
+AI-powered hypothesis generation and analysis
+
+Google dork support for deep web intelligence
+
+Interactive neon web interface with live search and results
+
+Professional neon ASCII design for a futuristic visual style
 ---
 
 ### ⚙️ Installation
 
-```bash
-git clone https://github.com/umenyi-bryan/Brosint.git
-cd Brosint
-python3 -m venv venv
+
+To install and run BROsint on your system:
+
+# Clone the repository
+```
+git clone https://github.com/umenyi-bryan/BROsint.git
+cd BROsint
+```
+
+# Activate virtual environment
 source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
-python brosint.py
+
+# Start the web dashboard
+python brosint.py --web
+---
+
+### 📚 Usage 
+1. Launch the web dashboard — it will run locally at:
+http://127.0.0.1:5000
+
+
+2. Enter an email, username, phone, or file in the search bar.
+
+
+3. View live OSINT results including:
+
+Email traces and patterns
+
+Domain and WHOIS data
+
+File metadata (EXIF)
+
+AI-generated hypotheses and confidence levels
+
+
+
+4. Export or share results directly from the dashboard.
+
+NOTES
+
+BROsint uses only publicly available information — it does not access private databases or paid APIs.
+
+It is free and open-source, designed for learning, research, and ethical use.
+
+Built for Termux, Linux, and other Unix-like environments.
+
+The web interface features neon dynamic visuals with interactive elements powered by Flask.
+
+---
+Contribution
+
+BROsint welcomes community contributions!
+
+# Fork the repo
+git clone https://github.com/yourusername/BROsint.git
+
+# Make your changes
+git add .
+git commit -m "Add new feature"
+
+# Push to your fork
+git push origin main
+
+Then open a pull request for review.
+Contributions can include bug fixes, new OSINT modules, or UI improvements.
+
 
 ---
 
-### 📚 Usage Examples
+License
 
-```bash
-# Run in demo mode
-python brosint.py --demo
+BROsint is open-source software provided for ethical and educational use only.
+Any misuse for illegal or unethical purposes is strictly prohibited.
 
-# Run normal scan
-python brosint.py --email example@mail.com --out report.html
+© 2025 Chinedu. All rights reserved.
 
-*(Notice: There are three backticks ``` before and after the bash commands — don’t remove them. They format the code block.)*
 
 ---
 
-### ✅ After adding that:
-Save and exit:
